@@ -94,12 +94,7 @@ class DocumentController extends Controller
 
         $file = $request->file('file');
 
-        // Delete existing document for this activity if any
-        if ($activite->document) {
-            $this->uploadService->delete($activite->document);
-        }
-
-        // Upload file securely using the service
+        // Upload file securely using the service (multiple files per activity allowed)
         try {
             $document = $this->uploadService->upload(
                 $file,
@@ -157,6 +152,8 @@ class DocumentController extends Controller
                 CandidatureDocument::TYPE_ENSEIGNEMENTS_PDF,
                 CandidatureDocument::TYPE_PFE_PDF,
                 CandidatureDocument::TYPE_SIGNED_DOCUMENT,
+                CandidatureDocument::TYPE_ATTESTATION_ENS_PDF,
+                CandidatureDocument::TYPE_ATTESTATION_RECH_PDF,
             ]),
         ], [
             'file.required' => 'Le fichier est requis',

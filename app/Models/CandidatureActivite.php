@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CandidatureActivite extends Model
 {
@@ -25,13 +25,16 @@ class CandidatureActivite extends Model
         return $this->belongsTo(Candidature::class);
     }
 
-    public function document(): HasOne
+    /**
+     * An activity can have multiple justificatif documents.
+     */
+    public function documents(): HasMany
     {
-        return $this->hasOne(CandidatureDocument::class, 'activite_id');
+        return $this->hasMany(CandidatureDocument::class, 'activite_id');
     }
 
-    public function hasRequiredDocument(): bool
+    public function hasRequiredDocuments(): bool
     {
-        return $this->count === 0 || $this->document !== null;
+        return $this->count === 0 || $this->documents()->exists();
     }
 }

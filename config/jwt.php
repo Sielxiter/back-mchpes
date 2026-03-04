@@ -11,4 +11,9 @@ return [
     'cookie_path' => env('JWT_COOKIE_PATH', '/'),
 
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+
+    'mobile_oauth_allowed_redirect_prefixes' => array_values(array_filter(array_map(
+        static fn ($value) => trim($value),
+        explode(',', (string) env('JWT_MOBILE_OAUTH_ALLOWED_REDIRECT_PREFIXES', 'myapp://,exp://'))
+    ))),
 ];

@@ -91,7 +91,7 @@ class Candidature extends Model
         $missingDocsEnseignement = $this->activites()
             ->where('type', 'enseignement')
             ->where('count', '>', 0)
-            ->whereDoesntHave('document')
+            ->whereDoesntHave('documents')
             ->exists();
         $activitesEnseignementComplete = $hasActivitesEnseignement && !$missingDocsEnseignement;
 
@@ -99,7 +99,7 @@ class Candidature extends Model
         $missingDocsRecherche = $this->activites()
             ->where('type', 'recherche')
             ->where('count', '>', 0)
-            ->whereDoesntHave('document')
+            ->whereDoesntHave('documents')
             ->exists();
         $activitesRechercheComplete = $hasActivitesRecherche && !$missingDocsRecherche;
 

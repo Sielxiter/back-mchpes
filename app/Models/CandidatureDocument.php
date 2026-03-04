@@ -14,6 +14,50 @@ class CandidatureDocument extends Model
     public const TYPE_ACTIVITE_ATTESTATION = 'activite_attestation';
     public const TYPE_SIGNED_DOCUMENT = 'signed_document';
 
+    // Generated attestation PDFs (server-side)
+    public const TYPE_ATTESTATION_ENS_PDF = 'attestation_ens_pdf';
+    public const TYPE_ATTESTATION_RECH_PDF = 'attestation_rech_pdf';
+
+    // Per-type signed re-upload variants
+    public const TYPE_SIGNED_PROFILE = 'signed_profile';
+    public const TYPE_SIGNED_ENSEIGNEMENTS = 'signed_enseignements';
+    public const TYPE_SIGNED_PFE = 'signed_pfe';
+    public const TYPE_SIGNED_ATTESTATION_ENS = 'signed_attestation_ens';
+    public const TYPE_SIGNED_ATTESTATION_RECH = 'signed_attestation_rech';
+
+    /**
+     * All generated PDF types (server-side generation)
+     */
+    public const GENERATED_TYPES = [
+        self::TYPE_PROFILE_PDF,
+        self::TYPE_ENSEIGNEMENTS_PDF,
+        self::TYPE_PFE_PDF,
+        self::TYPE_ATTESTATION_ENS_PDF,
+        self::TYPE_ATTESTATION_RECH_PDF,
+    ];
+
+    /**
+     * Mapping from generated type to its signed counterpart
+     */
+    public const SIGNED_TYPE_MAP = [
+        self::TYPE_PROFILE_PDF => self::TYPE_SIGNED_PROFILE,
+        self::TYPE_ENSEIGNEMENTS_PDF => self::TYPE_SIGNED_ENSEIGNEMENTS,
+        self::TYPE_PFE_PDF => self::TYPE_SIGNED_PFE,
+        self::TYPE_ATTESTATION_ENS_PDF => self::TYPE_SIGNED_ATTESTATION_ENS,
+        self::TYPE_ATTESTATION_RECH_PDF => self::TYPE_SIGNED_ATTESTATION_RECH,
+    ];
+
+    /**
+     * All signed upload types
+     */
+    public const SIGNED_TYPES = [
+        self::TYPE_SIGNED_PROFILE,
+        self::TYPE_SIGNED_ENSEIGNEMENTS,
+        self::TYPE_SIGNED_PFE,
+        self::TYPE_SIGNED_ATTESTATION_ENS,
+        self::TYPE_SIGNED_ATTESTATION_RECH,
+    ];
+
     public const ALLOWED_MIME_TYPES = [
         'application/pdf',
     ];
@@ -23,6 +67,7 @@ class CandidatureDocument extends Model
     protected $fillable = [
         'candidature_id',
         'activite_id',
+        'generated_document_id',
         'type',
         'original_name',
         'stored_name',
@@ -53,6 +98,38 @@ class CandidatureDocument extends Model
     public function activite(): BelongsTo
     {
         return $this->belongsTo(CandidatureActivite::class, 'activite_id');
+    }
+
+    /**
+     * The generated document this signed upload relates to.
+     */
+    public function generatedDocument(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'generated_document_id');
+    }
+
+    /**
+     * The signed version(s) uploaded for this generated document.
+     */
+    public function signedVersions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(self::class, 'generated_document_id');
+    }
+
+    /**
+     * Check if this document type is a generated PDF type.
+     */
+    public function isGenerated(): bool
+    {
+        return in_array($this->type, self::GENERATED_TYPES);
+    }
+
+    /**
+     * Check if this document type is a signed upload type.
+     */
+    public function isSigned(): bool
+    {
+        return in_array($this->type, self::SIGNED_TYPES);
     }
 
     public function getUrlAttribute(): string

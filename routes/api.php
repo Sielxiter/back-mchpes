@@ -17,6 +17,7 @@ use App\Http\Controllers\Candidat\CandidatureController;
 use App\Http\Controllers\Candidat\DocumentController;
 use App\Http\Controllers\Candidat\EnseignementController;
 use App\Http\Controllers\Candidat\PfeController;
+use App\Http\Controllers\Candidat\PdfGeneratorController;
 use App\Http\Controllers\Candidat\ProfileController;
 use App\Http\Controllers\Commission\CommissionDossierController;
 use App\Http\Controllers\Commission\CommissionEvaluationController;
@@ -31,11 +32,16 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::prefix('auth')->group(function () {
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/logout', [AuthController::class, 'logout'])->middleware('jwt');
-    Route::get('/me', [AuthController::class, 'me'])->middleware('jwt');
-    Route::get('/google/redirect', [AuthController::class, 'redirectToGoogle']);
-    Route::get('/google/callback', [AuthController::class, 'handleGoogleCallback']);
+    // Strict rate limit on login & OAuth (5/min per IP)
+    Route::middleware('throttle:auth')->group(function () {
+        Route::post('/login', [AuthController::class, 'login']);
+        Route::get('/google/redirect', [AuthController::class, 'redirectToGoogle']);
+        Route::get('/google/callback', [AuthController::class, 'handleGoogleCallback']);
+    });
+
+    // Standard API rate limit for session endpoints
+    Route::post('/logout', [AuthController::class, 'logout'])->middleware(['jwt', 'throttle:api']);
+    Route::get('/me', [AuthController::class, 'me'])->middleware(['jwt', 'throttle:api']);
 });
 
 /*
@@ -68,7 +74,7 @@ Route::middleware(['jwt', 'role:'.User::ROLE_PRESIDENT])->get('/president/health
 | Candidat Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['jwt', 'role:'.User::ROLE_CANDIDAT])
+Route::middleware(['jwt', 'role:'.User::ROLE_CANDIDAT, 'throttle:api'])
     ->prefix('candidat')
     ->group(function () {
         // Candidature management
@@ -101,13 +107,21 @@ Route::middleware(['jwt', 'role:'.User::ROLE_CANDIDAT])
         Route::delete('/activites/{id}', [ActiviteController::class, 'destroy']);
         Route::get('/activites/categories', [ActiviteController::class, 'categories']);
 
-        // Documents
+        // Documents (upload routes use stricter upload limiter)
         Route::get('/documents', [DocumentController::class, 'index']);
-        Route::post('/documents', [DocumentController::class, 'upload']);
-        Route::post('/documents/activite/{activiteId}', [DocumentController::class, 'uploadForActivite']);
+        Route::post('/documents', [DocumentController::class, 'upload'])->middleware('throttle:uploads');
+        Route::post('/documents/activite/{activiteId}', [DocumentController::class, 'uploadForActivite'])->middleware('throttle:uploads');
         Route::get('/documents/{id}/preview', [DocumentController::class, 'preview']);
         Route::get('/documents/{id}/download', [DocumentController::class, 'download']);
         Route::delete('/documents/{id}', [DocumentController::class, 'destroy']);
+
+        // PDF Generation & Signed Document Upload
+        Route::get('/documents/generate/{type}', [PdfGeneratorController::class, 'generate']);
+        Route::post('/documents/generate/{type}/store', [PdfGeneratorController::class, 'generateAndStore']);
+        Route::post('/documents/generate-all', [PdfGeneratorController::class, 'generateAll']);
+        Route::get('/documents/generated-status', [PdfGeneratorController::class, 'status']);
+        Route::post('/documents/signed/{type}', [PdfGeneratorController::class, 'uploadSigned'])->middleware('throttle:uploads');
+        Route::delete('/documents/signed/{type}', [PdfGeneratorController::class, 'deleteSigned']);
     });
 
 /*
@@ -115,7 +129,7 @@ Route::middleware(['jwt', 'role:'.User::ROLE_CANDIDAT])
 | Admin Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['jwt', 'role:'.User::ROLE_ADMIN])
+Route::middleware(['jwt', 'role:'.User::ROLE_ADMIN, 'throttle:api'])
     ->prefix('admin')
     ->group(function () {
         // Analytics
@@ -179,7 +193,7 @@ Route::middleware(['jwt', 'role:'.User::ROLE_ADMIN])
 | Commission Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['jwt', 'role:'.User::ROLE_COMMISSION.','.User::ROLE_PRESIDENT])
+Route::middleware(['jwt', 'role:'.User::ROLE_COMMISSION.','.User::ROLE_PRESIDENT, 'throttle:api'])
     ->prefix('commission')
     ->group(function () {
         Route::get('/dossiers', [CommissionDossierController::class, 'index']);
@@ -196,7 +210,7 @@ Route::middleware(['jwt', 'role:'.User::ROLE_COMMISSION.','.User::ROLE_PRESIDENT
 | President Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['jwt', 'role:'.User::ROLE_PRESIDENT])
+Route::middleware(['jwt', 'role:'.User::ROLE_PRESIDENT, 'throttle:api'])
     ->prefix('president')
     ->group(function () {
         Route::get('/dossiers', [PresidentDossierController::class, 'index']);
@@ -217,7 +231,7 @@ Route::middleware(['jwt', 'role:'.User::ROLE_PRESIDENT])
 | Public Routes (for all authenticated users)
 |--------------------------------------------------------------------------
 */
-Route::middleware('jwt')->group(function () {
+Route::middleware(['jwt', 'throttle:api'])->group(function () {
     // Get active deadlines (visible to all authenticated users)
     Route::get('/deadlines/active', [DeadlineController::class, 'active']);
 });

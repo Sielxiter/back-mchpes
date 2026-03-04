@@ -5,12 +5,20 @@ namespace App\Http\Controllers\Candidat;
 use App\Http\Controllers\Controller;
 use App\Models\Candidature;
 use App\Models\CandidatureActivite;
+use App\Services\SecureFileUploadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class ActiviteController extends Controller
 {
+    protected SecureFileUploadService $uploadService;
+
+    public function __construct(SecureFileUploadService $uploadService)
+    {
+        $this->uploadService = $uploadService;
+    }
+
     // Category definitions for validation
     const ENSEIGNEMENT_CATEGORIES = [
         'A/1' => [
@@ -69,7 +77,7 @@ class ActiviteController extends Controller
         
         $activites = $candidature->activites()
             ->where('type', $type)
-            ->with('document')
+            ->with('documents')
             ->orderBy('category')
             ->orderBy('subcategory')
             ->get();
@@ -79,7 +87,7 @@ class ActiviteController extends Controller
             return [
                 'items' => $items,
                 'total_count' => $items->sum('count'),
-                'has_all_documents' => $items->every(fn($item) => $item->document !== null),
+                'has_all_documents' => $items->every(fn($item) => $item->documents->isNotEmpty()),
             ];
         });
 
@@ -154,7 +162,7 @@ class ActiviteController extends Controller
 
         return response()->json([
             'message' => 'Activité enregistrée',
-            'activite' => $activite->load('document'),
+            'activite' => $activite->load('documents'),
         ]);
     }
 
@@ -212,14 +220,14 @@ class ActiviteController extends Controller
         // Actually, we should preserve documents by keeping existing records if they have documents
         $existingWithDocs = $candidature->activites()
             ->where('type', $type)
-            ->whereHas('document')
+            ->whereHas('documents')
             ->pluck('id', 'subcategory')
             ->toArray();
 
         // Delete only those without documents
         $candidature->activites()
             ->where('type', $type)
-            ->whereDoesntHave('document')
+            ->whereDoesntHave('documents')
             ->delete();
 
         $saved = [];
@@ -253,7 +261,7 @@ class ActiviteController extends Controller
 
         $activites = $candidature->activites()
             ->where('type', $type)
-            ->with('document')
+            ->with('documents')
             ->get();
 
         return response()->json([
@@ -279,9 +287,9 @@ class ActiviteController extends Controller
             return response()->json(['error' => 'Activité non trouvée'], 404);
         }
 
-        // Delete associated document if exists
-        if ($activite->document) {
-            $activite->document->delete();
+        // Delete associated documents if any
+        foreach ($activite->documents as $doc) {
+            $this->uploadService->delete($doc);
         }
 
         $activite->delete();

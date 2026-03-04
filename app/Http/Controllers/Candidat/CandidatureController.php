@@ -113,7 +113,7 @@ class CandidatureController extends Controller
         // Check all activities have required documents
         $activitiesWithoutDocs = $candidature->activites()
             ->where('count', '>', 0)
-            ->whereDoesntHave('document')
+            ->whereDoesntHave('documents')
             ->count();
 
         if ($activitiesWithoutDocs > 0) {
