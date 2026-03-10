@@ -154,6 +154,9 @@ class DocumentController extends Controller
                 CandidatureDocument::TYPE_SIGNED_DOCUMENT,
                 CandidatureDocument::TYPE_ATTESTATION_ENS_PDF,
                 CandidatureDocument::TYPE_ATTESTATION_RECH_PDF,
+                CandidatureDocument::TYPE_DIPLOME_DOCTORAT,
+                CandidatureDocument::TYPE_DIPLOME_HABILITATION,
+                CandidatureDocument::TYPE_ARRETE_TITULARISATION,
             ]),
         ], [
             'file.required' => 'Le fichier est requis',

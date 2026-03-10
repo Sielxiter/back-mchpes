@@ -16,6 +16,7 @@ class CandidatureEnseignement extends Model
     protected $fillable = [
         'candidature_id',
         'annee_universitaire',
+        'etablissement',
         'intitule',
         'type_enseignement',
         'type_module',

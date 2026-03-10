@@ -13,6 +13,9 @@ return new class extends Migration
             $table->foreignId('candidature_id')->constrained()->cascadeOnDelete();
             $table->string('nom');
             $table->string('prenom');
+            $table->string('nom_ar')->nullable();
+            $table->string('prenom_ar')->nullable();
+            $table->string('cin')->nullable();
             $table->string('email');
             $table->date('date_naissance');
             $table->string('etablissement');
@@ -21,7 +24,7 @@ return new class extends Migration
             $table->string('grade_actuel');
             $table->date('date_recrutement_es');
             $table->date('date_recrutement_fp')->nullable();
-            $table->string('numero_som');
+            $table->string('numero_som')->nullable();
             $table->string('telephone');
             $table->string('specialite');
             $table->boolean('exactitude_info')->default(false);

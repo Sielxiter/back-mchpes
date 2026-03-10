@@ -163,6 +163,8 @@ class PdfGenerationService
             'candidature_id' => $candidature->id,
             'generated_date' => now()->format('d/m/Y'),
             'reference' => 'CAND-' . str_pad($candidature->id, 4, '0', STR_PAD_LEFT),
+            'profile' => $candidature->profile,
+            'signature' => $candidature->signature,
         ];
 
         switch ($typeKey) {
@@ -174,9 +176,17 @@ class PdfGenerationService
                 ]);
 
             case 'enseignements':
-                $enseignements = $candidature->enseignements()->orderBy('annee_universitaire')->get();
+                $enseignements = $candidature->enseignements()->orderBy('annee_universitaire', 'desc')->get();
+                $byYear = $enseignements->groupBy('annee_universitaire')->map(function ($items) {
+                    return [
+                        'items' => $items,
+                        'volume_horaire' => $items->sum('volume_horaire'),
+                        'equivalent_tp' => $items->sum('equivalent_tp'),
+                    ];
+                });
                 return array_merge($common, [
                     'enseignements' => $enseignements,
+                    'by_year' => $byYear,
                     'totals' => [
                         'volume_horaire' => $enseignements->sum('volume_horaire'),
                         'equivalent_tp' => $enseignements->sum('equivalent_tp'),
@@ -184,7 +194,7 @@ class PdfGenerationService
                 ]);
 
             case 'pfe':
-                $pfes = $candidature->pfes()->orderBy('annee_universitaire')->get();
+                $pfes = $candidature->pfes()->orderBy('annee_universitaire', 'desc')->get();
                 return array_merge($common, [
                     'pfes' => $pfes,
                     'totals' => [

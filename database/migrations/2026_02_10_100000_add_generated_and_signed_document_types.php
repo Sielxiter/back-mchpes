@@ -10,20 +10,41 @@ return new class extends Migration
     public function up(): void
     {
         // Expand the enum to include attestation types and per-type signed variants
-        DB::statement("ALTER TABLE candidature_documents MODIFY COLUMN type ENUM(
-            'profile_pdf',
-            'enseignements_pdf',
-            'pfe_pdf',
-            'activite_attestation',
-            'signed_document',
-            'attestation_ens_pdf',
-            'attestation_rech_pdf',
-            'signed_profile',
-            'signed_enseignements',
-            'signed_pfe',
-            'signed_attestation_ens',
-            'signed_attestation_rech'
-        ) NOT NULL");
+        $driver = DB::getDriverName();
+        
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE candidature_documents MODIFY COLUMN type ENUM(
+                'profile_pdf',
+                'enseignements_pdf',
+                'pfe_pdf',
+                'activite_attestation',
+                'signed_document',
+                'attestation_ens_pdf',
+                'attestation_rech_pdf',
+                'signed_profile',
+                'signed_enseignements',
+                'signed_pfe',
+                'signed_attestation_ens',
+                'signed_attestation_rech'
+            ) NOT NULL");
+        } elseif ($driver === 'pgsql') {
+            DB::statement("DROP TYPE IF EXISTS candidature_document_type CASCADE");
+            DB::statement("CREATE TYPE candidature_document_type AS ENUM (
+                'profile_pdf',
+                'enseignements_pdf',
+                'pfe_pdf',
+                'activite_attestation',
+                'signed_document',
+                'attestation_ens_pdf',
+                'attestation_rech_pdf',
+                'signed_profile',
+                'signed_enseignements',
+                'signed_pfe',
+                'signed_attestation_ens',
+                'signed_attestation_rech'
+            )");
+            DB::statement("ALTER TABLE candidature_documents ALTER COLUMN type TYPE candidature_document_type USING type::text::candidature_document_type");
+        }
 
         // Add a nullable column to reference the generated doc that a signed upload relates to
         Schema::table('candidature_documents', function (Blueprint $table) {
@@ -42,12 +63,26 @@ return new class extends Migration
             $table->dropColumn('generated_document_id');
         });
 
-        DB::statement("ALTER TABLE candidature_documents MODIFY COLUMN type ENUM(
-            'profile_pdf',
-            'enseignements_pdf',
-            'pfe_pdf',
-            'activite_attestation',
-            'signed_document'
-        ) NOT NULL");
+        $driver = DB::getDriverName();
+        
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE candidature_documents MODIFY COLUMN type ENUM(
+                'profile_pdf',
+                'enseignements_pdf',
+                'pfe_pdf',
+                'activite_attestation',
+                'signed_document'
+            ) NOT NULL");
+        } elseif ($driver === 'pgsql') {
+            DB::statement("DROP TYPE IF EXISTS candidature_document_type CASCADE");
+            DB::statement("CREATE TYPE candidature_document_type AS ENUM (
+                'profile_pdf',
+                'enseignements_pdf',
+                'pfe_pdf',
+                'activite_attestation',
+                'signed_document'
+            )");
+            DB::statement("ALTER TABLE candidature_documents ALTER COLUMN type TYPE candidature_document_type USING type::text::candidature_document_type");
+        }
     }
 };

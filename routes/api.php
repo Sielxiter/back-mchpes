@@ -81,6 +81,7 @@ Route::middleware(['jwt', 'role:'.User::ROLE_CANDIDAT, 'throttle:api'])
         Route::get('/candidature', [CandidatureController::class, 'index']);
         Route::get('/candidature/status', [CandidatureController::class, 'status']);
         Route::post('/candidature/submit', [CandidatureController::class, 'submit']);
+        Route::post('/candidature/signature', [CandidatureController::class, 'saveSignature']);
 
         // Step 1: Profile
         Route::get('/profile', [ProfileController::class, 'show']);

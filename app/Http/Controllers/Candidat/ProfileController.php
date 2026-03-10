@@ -56,6 +56,9 @@ class ProfileController extends Controller
         $validator = Validator::make($request->all(), [
             'nom' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
+            'nom_ar' => 'required|string|max:255',
+            'prenom_ar' => 'required|string|max:255',
+            'cin' => 'required|string|max:50',
             'email' => 'nullable|email|max:255', // Optional, will use user email if not provided
             'date_naissance' => 'required|date|before:today',
             'etablissement' => 'required|string|max:255',
@@ -64,9 +67,10 @@ class ProfileController extends Controller
             'grade_actuel' => 'required|string|max:255',
             'date_recrutement_es' => 'required|date|before_or_equal:today',
             'date_recrutement_fp' => 'nullable|date|before_or_equal:today',
-            'numero_som' => 'required|string|max:50',
+            'numero_som' => 'nullable|string|max:50',
             'telephone' => 'required|string|max:20',
             'specialite' => 'required|string|max:255',
+            'date_soutenance_habilitation' => 'nullable|date|before_or_equal:today',
             'exactitude_info' => 'nullable|boolean',
             'acceptation_termes' => 'nullable|boolean',
             // Ignore fields that don't exist in schema
@@ -75,6 +79,9 @@ class ProfileController extends Controller
         ], [
             'nom.required' => 'Le nom est requis',
             'prenom.required' => 'Le prénom est requis',
+            'nom_ar.required' => 'الاسم العائلي مطلوب',
+            'prenom_ar.required' => 'الاسم الشخصي مطلوب',
+            'cin.required' => 'Le CIN est requis',
             'date_naissance.required' => 'La date de naissance est requise',
             'date_naissance.before' => 'La date de naissance doit être dans le passé',
             'etablissement.required' => 'L\'établissement est requis',
@@ -140,9 +147,9 @@ class ProfileController extends Controller
         }
 
         $data = $request->only([
-            'nom', 'prenom', 'email', 'date_naissance', 'etablissement',
+            'nom', 'prenom', 'nom_ar', 'prenom_ar', 'cin', 'email', 'date_naissance', 'etablissement',
             'ville', 'departement', 'grade_actuel', 'date_recrutement_es',
-            'date_recrutement_fp', 'numero_som', 'telephone', 'specialite',
+            'date_recrutement_fp', 'numero_som', 'telephone', 'specialite', 'date_soutenance_habilitation',
         ]);
 
         // Filter out null, empty strings, and undefined values
@@ -164,6 +171,9 @@ class ProfileController extends Controller
         $validator = Validator::make($data, [
             'nom' => 'sometimes|string|max:255',
             'prenom' => 'sometimes|string|max:255',
+            'nom_ar' => 'sometimes|string|max:255',
+            'prenom_ar' => 'sometimes|string|max:255',
+            'cin' => 'sometimes|string|max:50',
             'email' => 'sometimes|email|max:255',
             'date_naissance' => 'sometimes|date|before:today',
             'etablissement' => 'sometimes|string|max:255',
@@ -172,9 +182,10 @@ class ProfileController extends Controller
             'grade_actuel' => 'sometimes|string|max:255',
             'date_recrutement_es' => 'sometimes|date|before_or_equal:today',
             'date_recrutement_fp' => 'nullable|date|before_or_equal:today',
-            'numero_som' => 'sometimes|string|max:50',
+            'numero_som' => 'nullable|string|max:50',
             'telephone' => 'sometimes|string|max:20',
             'specialite' => 'sometimes|string|max:255',
+            'date_soutenance_habilitation' => 'nullable|date|before_or_equal:today',
         ]);
 
         if ($validator->fails()) {
@@ -202,6 +213,9 @@ class ProfileController extends Controller
                 $createData = array_merge([
                     'nom' => $validatedData['nom'] ?? '',
                     'prenom' => $validatedData['prenom'] ?? '',
+                    'nom_ar' => $validatedData['nom_ar'] ?? '',
+                    'prenom_ar' => $validatedData['prenom_ar'] ?? '',
+                    'cin' => $validatedData['cin'] ?? '',
                     'email' => $validatedData['email'] ?? $user->email,
                     'date_naissance' => $validatedData['date_naissance'] ?? '1970-01-01',
                     'etablissement' => $validatedData['etablissement'] ?? '',
@@ -213,6 +227,7 @@ class ProfileController extends Controller
                     'numero_som' => $validatedData['numero_som'] ?? '',
                     'telephone' => $validatedData['telephone'] ?? '',
                     'specialite' => $validatedData['specialite'] ?? '',
+                    'date_soutenance_habilitation' => $validatedData['date_soutenance_habilitation'] ?? null,
                     'exactitude_info' => false,
                     'acceptation_termes' => false,
                     'is_complete' => false,

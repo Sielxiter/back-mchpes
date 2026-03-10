@@ -23,6 +23,7 @@ class Candidature extends Model
         'submitted_at',
         'locked_at',
         'rejection_reason',
+        'signature',
     ];
 
     protected $casts = [

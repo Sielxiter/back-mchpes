@@ -138,4 +138,33 @@ class CandidatureController extends Controller
             'candidature' => $candidature->fresh(),
         ]);
     }
+
+    /**
+     * Save candidate's electronic signature
+     */
+    public function saveSignature(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $candidature = $user->candidature;
+
+        if (!$candidature) {
+            return response()->json(['error' => 'Candidature non trouvée'], 404);
+        }
+
+        if ($candidature->isLocked()) {
+            return response()->json(['error' => 'La candidature est verrouillée'], 422);
+        }
+
+        $request->validate([
+            'signature' => 'required|string',
+        ]);
+
+        $candidature->update([
+            'signature' => $request->signature,
+        ]);
+
+        return response()->json([
+            'message' => 'Signature enregistrée avec succès',
+        ]);
+    }
 }

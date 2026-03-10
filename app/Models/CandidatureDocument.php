@@ -13,6 +13,9 @@ class CandidatureDocument extends Model
     public const TYPE_PFE_PDF = 'pfe_pdf';
     public const TYPE_ACTIVITE_ATTESTATION = 'activite_attestation';
     public const TYPE_SIGNED_DOCUMENT = 'signed_document';
+    public const TYPE_DIPLOME_DOCTORAT = 'diplome_doctorat';
+    public const TYPE_DIPLOME_HABILITATION = 'diplome_habilitation';
+    public const TYPE_ARRETE_TITULARISATION = 'arrete_titularisation';
 
     // Generated attestation PDFs (server-side)
     public const TYPE_ATTESTATION_ENS_PDF = 'attestation_ens_pdf';

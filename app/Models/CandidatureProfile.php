@@ -12,6 +12,9 @@ class CandidatureProfile extends Model
         'candidature_id',
         'nom',
         'prenom',
+        'nom_ar',
+        'prenom_ar',
+        'cin',
         'email',
         'date_naissance',
         'etablissement',
@@ -23,6 +26,7 @@ class CandidatureProfile extends Model
         'numero_som',
         'telephone',
         'specialite',
+        'date_soutenance_habilitation',
         'exactitude_info',
         'acceptation_termes',
         'is_complete',
@@ -32,6 +36,7 @@ class CandidatureProfile extends Model
         'date_naissance' => 'date',
         'date_recrutement_es' => 'date',
         'date_recrutement_fp' => 'date',
+        'date_soutenance_habilitation' => 'date',
         'exactitude_info' => 'boolean',
         'acceptation_termes' => 'boolean',
         'is_complete' => 'boolean',
@@ -66,9 +71,9 @@ class CandidatureProfile extends Model
     public function checkCompleteness(): bool
     {
         $required = [
-            'nom', 'prenom', 'email', 'date_naissance', 'etablissement',
+            'nom', 'prenom', 'nom_ar', 'prenom_ar', 'cin', 'email', 'date_naissance', 'etablissement',
             'ville', 'departement', 'grade_actuel', 'date_recrutement_es',
-            'numero_som', 'telephone', 'specialite'
+            'telephone', 'specialite'
         ];
 
         foreach ($required as $field) {

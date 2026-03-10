@@ -59,6 +59,7 @@ class EnseignementController extends Controller
 
         $validator = Validator::make($request->all(), [
             'annee_universitaire' => 'required|string|max:20',
+            'etablissement' => 'required|string|max:255',
             'intitule' => 'required|string|max:500',
             'type_enseignement' => 'required|in:CM,TD,TP',
             'type_module' => 'required|in:Module,Element de module',
@@ -66,6 +67,7 @@ class EnseignementController extends Controller
             'volume_horaire' => 'required|integer|min:1|max:1000',
         ], [
             'annee_universitaire.required' => 'L\'année universitaire est requise',
+            'etablissement.required' => 'L\'établissement est requis',
             'intitule.required' => 'L\'intitulé est requis',
             'type_enseignement.required' => 'Le type d\'enseignement est requis',
             'type_enseignement.in' => 'Le type d\'enseignement doit être CM, TD ou TP',
@@ -135,6 +137,7 @@ class EnseignementController extends Controller
         $validator = Validator::make($request->all(), [
             'enseignements' => 'required|array',
             'enseignements.*.annee_universitaire' => 'required_with:enseignements.*|string|max:20',
+            'enseignements.*.etablissement' => 'required_with:enseignements.*|string|max:255',
             'enseignements.*.intitule' => 'required_with:enseignements.*|string|max:500',
             'enseignements.*.type_enseignement' => 'required_with:enseignements.*|in:CM,TD,TP',
             'enseignements.*.type_module' => 'required_with:enseignements.*|in:Module,Element de module',
@@ -149,6 +152,7 @@ class EnseignementController extends Controller
         // Filter out invalid entries
         $validEnseignements = collect($request->enseignements ?? [])->filter(function ($item) {
             return isset($item['annee_universitaire']) && 
+                   isset($item['etablissement']) && 
                    isset($item['intitule']) && 
                    isset($item['type_enseignement']) && 
                    isset($item['type_module']) && 
@@ -165,6 +169,7 @@ class EnseignementController extends Controller
             return CandidatureEnseignement::create([
                 'candidature_id' => $candidature->id,
                 'annee_universitaire' => $item['annee_universitaire'],
+                'etablissement' => $item['etablissement'],
                 'intitule' => $item['intitule'],
                 'type_enseignement' => $item['type_enseignement'],
                 'type_module' => $item['type_module'],
